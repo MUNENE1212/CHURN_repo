@@ -16,8 +16,6 @@ st.write("Enter customer details below to predict churn using Logistic Regressio
 
 # Create input form
 with st.form("churn_form"):
-    customerID = st.text_input("Customer ID")
-
     gender = st.selectbox("Gender", ["Male", "Female"])
     SeniorCitizen = st.selectbox("Senior Citizen", [0, 1])
     Partner = st.selectbox("Has Partner", ["Yes", "No"])
@@ -46,7 +44,6 @@ with st.form("churn_form"):
 if submit:
     try:
         input_data = pd.DataFrame([{
-            "customerID": customerID,
             "gender": gender,
             "SeniorCitizen": SeniorCitizen,
             "Partner": Partner,
