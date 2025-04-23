@@ -98,23 +98,27 @@ if submit_button and model is not None:
         'PaperlessBilling': [paperless_billing],
         'PaymentMethod': [payment_method],
         'MonthlyCharges': [monthly_charges],
-        'TotalCharges': [str(total_charges)]  # Convert to string to match dataset format
+        'TotalCharges': [str(total_charges)],  # Convert to string to match dataset format
+        'Churn': ['No']  # Add a dummy value for Churn - this will be overwritten
     }
     
     # Create DataFrame
     input_df = pd.DataFrame(input_data)
     
-    # Display the input data
+    # Display the input data (excluding the dummy Churn value)
     st.subheader("Customer Profile")
-    display_data = {k: v[0] for k, v in input_data.items()}
+    display_data = {k: v[0] for k, v in input_data.items() if k != 'Churn'}
     profile_df = pd.DataFrame.from_dict(display_data, orient='index', columns=['Value'])
     st.dataframe(profile_df)
     
     try:
         # The pipeline handles preprocessing so we can directly use the input data
+        # For prediction, make a copy of the DataFrame to avoid modifying the original
+        X_pred = input_df.copy()
+        
         # Make prediction
-        prediction = model.predict(input_df)
-        probability = model.predict_proba(input_df)
+        prediction = model.predict(X_pred)
+        probability = model.predict_proba(X_pred)
         
         # Display prediction
         st.subheader("Prediction Results")
@@ -148,19 +152,41 @@ if submit_button and model is not None:
             ax.set_title('Prediction Probabilities')
             st.pyplot(fig)
         
-        # Show key factors influencing churn
+        # Show key factors affecting churn risk
         st.subheader("Customer Risk Analysis")
-        st.markdown("""
-        The likelihood of churn is influenced by various factors including:
-        - Contract type (month-to-month contracts have higher churn)
-        - Tenure (newer customers are more likely to churn)
-        - Payment method (electronic checks show higher churn rates)
-        - Internet service type (fiber optic customers show higher churn)
-        """)
+        
+        # Define some rules based on common churn factors
+        risk_factors = []
+        if contract == "Month-to-month":
+            risk_factors.append("Month-to-month contract (higher risk)")
+        if tenure < 12:
+            risk_factors.append("New customer with tenure < 12 months (higher risk)")
+        if payment_method == "Electronic check":
+            risk_factors.append("Payment via electronic check (higher risk)")
+        if internet_service == "Fiber optic":
+            risk_factors.append("Fiber optic internet service (higher risk)")
+        if tech_support == "No" and internet_service != "No":
+            risk_factors.append("No tech support with active internet service (higher risk)")
+        
+        if risk_factors:
+            st.markdown("### Key Risk Factors")
+            for factor in risk_factors:
+                st.markdown(f"- {factor}")
+        else:
+            st.markdown("No significant risk factors identified for this customer.")
         
     except Exception as e:
         st.error(f"Error making prediction: {e}")
         st.info("Error details: " + str(e))
+        
+        # Add debugging information
+        st.subheader("Debug Information")
+        st.write("Input DataFrame Columns:", input_df.columns.tolist())
+        st.write("Model expects these features:")
+        if hasattr(model, 'feature_names_in_'):
+            st.write(model.feature_names_in_)
+        else:
+            st.write("Feature names not available in the model object.")
 
 # Additional information section
 with st.expander("About This App"):
