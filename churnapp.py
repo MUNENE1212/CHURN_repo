@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-# Load model
+# Load the pre-trained pipeline model
 @st.cache_resource
 def load_model():
     with open("best_model.pkl", "rb") as f:
@@ -14,7 +14,7 @@ st.set_page_config(page_title="Customer Churn Predictor", layout="centered")
 st.title("🔍 Predict Customer Churn")
 st.write("Enter customer details below to predict churn using Logistic Regression.")
 
-# Create input form
+# Input form
 with st.form("churn_form"):
     gender = st.selectbox("Gender", ["Male", "Female"])
     SeniorCitizen = st.selectbox("Senior Citizen", [0, 1])
@@ -40,7 +40,7 @@ with st.form("churn_form"):
 
     submit = st.form_submit_button("Predict Churn")
 
-# Prepare prediction
+# Prediction logic
 if submit:
     try:
         input_data = pd.DataFrame([{
@@ -69,9 +69,8 @@ if submit:
         probability = model.predict_proba(input_data)[0][1]
 
         st.subheader("📊 Prediction Result")
-        st.write(f"**Customer ID:** {customerID}")
         st.write(f"**Churn Prediction:** {'Yes' if prediction == 1 else 'No'}")
         st.write(f"**Churn Probability:** {probability:.2%}")
 
     except Exception as e:
-        st.error(f"Prediction failed: {e}")
+        st.error(f"❌ Prediction failed: {e}")
