@@ -106,7 +106,8 @@ if submit_button and model is not None:
     
     # Display the input data
     st.subheader("Customer Profile")
-    profile_df = pd.DataFrame.from_dict({k: v[0] for k, v in input_data.items()}, orient='index', columns=['Value'])
+    display_data = {k: v[0] for k, v in input_data.items()}
+    profile_df = pd.DataFrame.from_dict(display_data, orient='index', columns=['Value'])
     st.dataframe(profile_df)
     
     try:
@@ -147,7 +148,7 @@ if submit_button and model is not None:
             ax.set_title('Prediction Probabilities')
             st.pyplot(fig)
         
-        # Show top factors influencing the prediction
+        # Show key factors influencing churn
         st.subheader("Customer Risk Analysis")
         st.markdown("""
         The likelihood of churn is influenced by various factors including:
@@ -159,7 +160,7 @@ if submit_button and model is not None:
         
     except Exception as e:
         st.error(f"Error making prediction: {e}")
-        st.info("Please check the input data format and ensure it matches what the model expects.")
+        st.info("Error details: " + str(e))
 
 # Additional information section
 with st.expander("About This App"):
